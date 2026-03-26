@@ -123,6 +123,8 @@ static void touch_activity(int sockfd)
     for (int i = 0; i < num_clientes; i++) {
         if (lista[i].sockfd == sockfd && lista[i].activo) {
             lista[i].ultimo_mensaje = time(NULL);
+            if (strcmp(lista[i].status, STATUS_INACTIVO) == 0)
+                strncpy(lista[i].status, STATUS_ACTIVO, 15);
             break;
         }
     }
@@ -316,14 +318,10 @@ static void *client_thread(void *arg)
        para permitir pruebas con multiples clientes en la misma maquina. */
     int dup = 0;
     const char *dup_msg = "Servidor lleno";
-    int check_ip = (strcmp(client_ip, "127.0.0.1") != 0);
     for (int i = 0; i < num_clientes; i++) {
         if (!lista[i].activo) continue;
         if (strcmp(lista[i].username, pkt.sender) == 0) {
             dup = 1; dup_msg = "Usuario ya existe"; break;
-        }
-        if (check_ip && strcmp(lista[i].ip, client_ip) == 0) {
-            dup = 1; dup_msg = "Ya hay una sesion activa desde esta IP"; break;
         }
     }
     if (dup || num_clientes >= MAX_CLIENTS) {
